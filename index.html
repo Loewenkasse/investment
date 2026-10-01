@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow">
+<title>Family Investment Ledger</title>
+<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,600&family=Public+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#eef1f4;--panel:#fff;--ink:#101828;--mute:#5b6676;--line:#d9dee5;--eu:#1f4e8c;--in:#b8660f;--btn:#101828;--btnt:#fff}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0e1319;--panel:#171e27;--ink:#eef1f5;--mute:#9aa6b6;--line:#2a3441;--eu:#6ea2e6;--in:#e8a04f;--btn:#eef1f5;--btnt:#101828}}
+:root[data-theme="dark"]{--bg:#0e1319;--panel:#171e27;--ink:#eef1f5;--mute:#9aa6b6;--line:#2a3441;--eu:#6ea2e6;--in:#e8a04f;--btn:#eef1f5;--btnt:#101828}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 "Public Sans",system-ui,sans-serif}
+main,#login{max-width:980px;margin:0 auto;padding:28px 18px 60px}
+[hidden]{display:none!important}
+h1,h2,.big,.num{font-family:"Source Serif 4",Georgia,serif}
+h1{font-size:15px;font-weight:600;margin:0;color:var(--mute);font-family:"Public Sans",sans-serif}
+.big{font-size:clamp(38px,8vw,64px);font-weight:600;letter-spacing:-.02em;line-height:1.05;margin:6px 0 2px}
+.sub{color:var(--mute);margin:0}
+.top{display:flex;flex-wrap:wrap;gap:16px;justify-content:space-between;align-items:flex-end}
+.rate{display:flex;gap:8px;align-items:center;color:var(--mute);font-size:13px;flex-wrap:wrap}
+input,textarea{font:inherit;color:var(--ink);background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:8px 10px;width:100%}
+.rate input{width:80px;padding:5px 8px}
+button{font:inherit;cursor:pointer;border-radius:6px;border:1px solid var(--line);background:var(--panel);color:var(--ink);padding:7px 12px}
+button.p{background:var(--btn);color:var(--btnt);border-color:var(--btn)}
+button:focus-visible,input:focus-visible,textarea:focus-visible{outline:2px solid var(--eu);outline-offset:2px}
+.bar{display:flex;height:14px;border-radius:7px;overflow:hidden;margin:22px 0 8px;background:var(--line)}
+.bar i{display:block;height:100%}
+.leg{display:flex;flex-wrap:wrap;gap:6px 18px;font-size:13px;color:var(--mute)}
+.leg b{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:6px}
+section,.hist{background:var(--panel);border:1px solid var(--line);border-radius:10px;margin-top:22px;overflow:hidden}
+.sh{display:flex;justify-content:space-between;align-items:baseline;gap:10px;padding:16px 18px;border-top:4px solid var(--c);flex-wrap:wrap}
+h2{margin:0;font-size:22px}.tot{font-size:22px;font-weight:600}
+.grp{padding:8px 18px;font-size:13px;font-weight:600;color:var(--mute);background:var(--bg);display:flex;justify-content:space-between}
+.scroll{overflow-x:auto}
+table{width:100%;border-collapse:collapse;min-width:520px}
+td,th{padding:10px 18px;text-align:right;border-top:1px solid var(--line);font-variant-numeric:tabular-nums}
+th{font-weight:500;font-size:12px;color:var(--mute);border-top:0}
+td:first-child,th:first-child{text-align:left}
+td.a{width:1%;white-space:nowrap}
+td small{display:block;color:var(--mute)}
+.add{padding:12px 18px;border-top:1px solid var(--line)}
+.hist{padding:16px 18px}.hist h2{font-size:18px;margin-bottom:8px}
+dialog{border:1px solid var(--line);border-radius:10px;background:var(--panel);color:var(--ink);width:min(440px,92vw);padding:20px}
+dialog::backdrop{background:rgba(0,0,0,.45)}
+label{display:block;font-size:13px;color:var(--mute);margin:10px 0 3px}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.acts{display:flex;gap:8px;justify-content:space-between;margin-top:18px}
+.foot{display:flex;flex-wrap:wrap;gap:8px;margin-top:22px;align-items:center}
+#msg{color:var(--mute);font-size:13px}
+#login{text-align:center;padding-top:15vh}
+#login h2{font-size:30px;margin-bottom:8px}
+</style>
+</head>
+<body>
+
+<div id="login" hidden>
+ <h2>Family investment ledger</h2>
+ <p class="sub">Private. Sign in with an approved Google account.</p>
+ <p style="margin-top:22px"><button class="p" id="signin">Sign in with Google</button></p>
+ <p id="lerr" class="sub"></p>
+</div>
+
+<main id="main" hidden>
+<div class="top">
+ <div><h1>Family investment ledger</h1><div class="big num" id="grand"></div><p class="sub" id="grandsub"></p></div>
+ <div class="rate"><label for="rate" style="margin:0">₹ per €1</label><input id="rate" type="number" step="0.1" min="1"><button id="theme">Theme</button><button id="signout">Sign out</button></div>
+</div>
+<div class="bar" id="bar"></div><div class="leg" id="leg"></div>
+<div id="app"></div>
+<div class="hist"><h2>Net worth over time</h2><div id="chart"></div></div>
+<div class="foot">
+ <button id="exp">Download backup</button>
+ <button id="imp">Import backup</button><input type="file" id="file" accept="application/json" hidden>
+ <button id="prt">Print</button><span id="msg"></span>
+</div>
+<p class="sub" style="margin-top:14px;font-size:13px">Values are entered by hand, not pulled from live markets. The combined total is logged once per day each time something is saved.</p>
+</main>
+
+<dialog id="dlg">
+ <h2 id="dt" style="font-size:20px;margin:0 0 4px"></h2>
+ <label for="f_name">Name</label><input id="f_name">
+ <label for="f_cat">Category</label><input id="f_cat" list="cats"><datalist id="cats"></datalist>
+ <div class="row2"><div><label for="f_val">Market value</label><input id="f_val" type="number" min="0" step="any"></div>
+ <div><label for="f_mon">Monthly investment</label><input id="f_mon" type="number" min="0" step="any"></div></div>
+ <label for="f_note">Notes (account number, contact, where documents are kept)</label><textarea id="f_note" rows="3"></textarea>
+ <div class="acts"><button id="f_del">Delete</button><span style="display:flex;gap:8px"><button id="f_cancel">Cancel</button><button class="p" id="f_save">Save</button></span></div>
+</dialog>
+
+<script type="module">
+import {initializeApp} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import {getAuth,GoogleAuthProvider,signInWithPopup,onAuthStateChanged,signOut} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import {getFirestore,doc,onSnapshot,setDoc} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+/* ===== 1. PASTE YOUR FIREBASE WEB APP CONFIG HERE (Project settings → Your apps) ===== */
+const firebaseConfig={
+ apiKey:"YOUR_API_KEY",
+ authDomain:"YOUR_PROJECT.firebaseapp.com",
+ projectId:"YOUR_PROJECT_ID",
+ appId:"YOUR_APP_ID"
+};
+/* ===== 2. The one email allowed to edit. Must match your Firestore rules. ===== */
+const OWNER_EMAIL="you@gmail.com";
+/* ========================================================================= */
+
+const app=initializeApp(firebaseConfig),auth=getAuth(app),db=getFirestore(app),ref=doc(db,"ledger","main");
+const $=id=>document.getElementById(id);
+const F={EU:new Intl.NumberFormat('en-GB',{style:'currency',currency:'EUR',maximumFractionDigits:0}),IN:new Intl.NumberFormat('en-IN',{style:'currency',currency:'INR',maximumFractionDigits:0})};
+const fmt=(v,r)=>F[r].format(v||0);
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const REG={EU:{n:'Europe',c:'var(--eu)'},IN:{n:'India',c:'var(--in)'}};
+const pal=['#1f4e8c','#b8660f','#3a7d6b','#7a5ca8','#c0455a','#6b8f2a','#2a8fa8','#8a6d3b','#555e6e'];
+const sum=(a,f)=>a.reduce((t,i)=>t+f(i),0);
+let S={rate:105,history:[],items:[]},editing=null,canEdit=false,unsub=null;
+const eur=i=>i.r==='EU'?i.val:i.val/S.rate;
+
+function render(){
+ const total=sum(S.items,eur),eu=sum(S.items.filter(i=>i.r==='EU'),eur),inn=total-eu;
+ $('grand').textContent=fmt(total,'EU');
+ $('grandsub').textContent=S.items.length?('Europe '+fmt(eu,'EU')+' and India '+fmt(inn*S.rate,'IN')+' (at ₹'+S.rate+' per €1)'):(canEdit?'No data yet. Use "Import backup" to load your investments.':'No data yet.');
+ $('rate').value=S.rate;$('rate').disabled=!canEdit;
+ $('imp').hidden=!canEdit;
+ const by={};S.items.forEach(i=>{const k=REG[i.r].n+': '+i.cat;by[k]=(by[k]||0)+eur(i)});
+ const ks=Object.entries(by).sort((a,b)=>b[1]-a[1]);
+ $('bar').innerHTML=ks.map(([k,v],n)=>`<i style="width:${v/total*100}%;background:${pal[n%9]}" title="${esc(k)}"></i>`).join('');
+ $('leg').innerHTML=ks.map(([k,v],n)=>`<span><b style="background:${pal[n%9]}"></b>${esc(k)} ${(v/total*100).toFixed(0)}%</span>`).join('');
+ $('cats').innerHTML=[...new Set(S.items.map(i=>i.cat))].map(c=>`<option value="${esc(c)}">`).join('');
+ $('app').innerHTML=['EU','IN'].map(r=>{
+  const its=S.items.filter(i=>i.r===r),cats=[...new Set(its.map(i=>i.cat))],mon=sum(its,i=>+i.mon||0);
+  return `<section style="--c:${REG[r].c}"><div class="sh"><h2>${REG[r].n}</h2><div class="tot num">${fmt(sum(its,i=>i.val),r)}</div></div>
+  <div class="scroll"><table><thead><tr><th>Investment</th><th>Monthly</th><th>Market value</th><th></th></tr></thead><tbody>`+
+  cats.map(c=>{const g=its.filter(i=>i.cat===c);return `<tr><td colspan="4" style="padding:0"><div class="grp"><span>${esc(c)}</span><span>${fmt(sum(g,i=>i.val),r)}</span></div></td></tr>`+
+  g.map(i=>`<tr><td>${esc(i.name)}${i.note?`<small>${esc(i.note)}</small>`:''}</td><td>${i.mon?fmt(i.mon,r):'–'}</td><td class="num">${fmt(i.val,r)}</td><td class="a">${canEdit?`<button data-edit="${i.id}">Edit</button>`:''}</td></tr>`).join('')}).join('')+
+  `</tbody></table></div>${canEdit||mon?`<div class="add">${canEdit?`<button data-add="${r}">Add investment</button>`:''}${mon?`<span class="sub" style="margin-left:12px">Invested each month: ${fmt(mon,r)}</span>`:''}</div>`:''}</section>`}).join('');
+ chart();
+}
+function chart(){
+ const h=S.history||[];if(h.length<2){$('chart').innerHTML='<p class="sub">The chart appears once two different days have been saved.</p>';return}
+ const W=700,H=180,p=30,mx=Math.max(...h.map(x=>x.eur)),mn=Math.min(...h.map(x=>x.eur)),sp=(mx-mn)||1;
+ const pts=h.map((x,n)=>[p+n*(W-2*p)/(h.length-1),H-p-(x.eur-mn)/sp*(H-2*p)]);
+ $('chart').innerHTML=`<svg viewBox="0 0 ${W} ${H}" style="width:100%;height:auto" role="img" aria-label="Combined value over time"><polyline fill="none" stroke="var(--eu)" stroke-width="2.5" points="${pts.map(q=>q.join(',')).join(' ')}"/>${pts.map((q,n)=>`<circle cx="${q[0]}" cy="${q[1]}" r="3.5" fill="var(--eu)"><title>${h[n].d}: ${fmt(h[n].eur,'EU')}</title></circle>`).join('')}<text x="${p}" y="${H-6}" font-size="11" fill="var(--mute)">${h[0].d}</text><text x="${W-p}" y="${H-6}" font-size="11" text-anchor="end" fill="var(--mute)">${h[h.length-1].d}</text></svg>`;
+}
+async function persist(){
+ const d=new Date().toISOString().slice(0,10),t=Math.round(sum(S.items,eur)),last=S.history[S.history.length-1];
+ if(last&&last.d===d)last.eur=t;else S.history.push({d,eur:t});
+ $('msg').textContent='Saving…';
+ try{await setDoc(ref,S);$('msg').textContent='Saved.'}
+ catch(e){$('msg').textContent='Could not save: '+(e.code||e.message)}
+ render();
+}
+function openDlg(id,r){
+ const i=id?S.items.find(x=>x.id===id):{r,cat:'',name:'',mon:0,val:0,note:''};
+ editing=id?i:{...i,id:'n'+Date.now(),isNew:true};
+ $('dt').textContent=id?'Edit investment':'Add investment in '+REG[r].n+' ('+(r==='EU'?'€':'₹')+')';
+ $('f_name').value=i.name;$('f_cat').value=i.cat;$('f_val').value=i.val;$('f_mon').value=i.mon;$('f_note').value=i.note;
+ $('f_del').hidden=!id;$('dlg').showModal();
+}
+document.addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;
+ if(b.dataset.edit)openDlg(b.dataset.edit);else if(b.dataset.add)openDlg(null,b.dataset.add)});
+$('f_cancel').onclick=()=>$('dlg').close();
+$('f_save').onclick=()=>{const n=$('f_name').value.trim();if(!n){$('f_name').focus();return}
+ Object.assign(editing,{name:n,cat:$('f_cat').value.trim()||'Other',val:+$('f_val').value||0,mon:+$('f_mon').value||0,note:$('f_note').value.trim()});
+ if(editing.isNew){delete editing.isNew;S.items.push(editing)}
+ $('dlg').close();persist()};
+$('f_del').onclick=()=>{if(confirm('Delete "'+editing.name+'"?')){S.items=S.items.filter(i=>i.id!==editing.id);$('dlg').close();persist()}};
+$('rate').onchange=()=>{const v=+$('rate').value;if(v>0){S.rate=v;persist()}};
+$('theme').onclick=()=>{const r=document.documentElement,d=matchMedia('(prefers-color-scheme:dark)').matches,c=r.dataset.theme||(d?'dark':'light');r.dataset.theme=c==='dark'?'light':'dark'};
+$('prt').onclick=()=>print();
+$('exp').onclick=()=>{const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(S,null,2)],{type:'application/json'}));a.download='investments-backup-'+new Date().toISOString().slice(0,10)+'.json';a.click();URL.revokeObjectURL(a.href)};
+$('imp').onclick=()=>$('file').click();
+$('file').onchange=async e=>{const f=e.target.files[0];if(!f)return;
+ try{const j=JSON.parse(await f.text());if(!Array.isArray(j.items))throw 0;
+  if(S.items.length&&!confirm('This replaces everything currently saved. Continue?'))return;
+  S={rate:+j.rate>0?+j.rate:105,history:Array.isArray(j.history)?j.history:[],items:j.items};persist()}
+ catch(_){$('msg').textContent='That file is not a valid backup.'}
+ e.target.value=''};
+$('signin').onclick=async()=>{try{await signInWithPopup(auth,new GoogleAuthProvider())}catch(e){$('lerr').textContent='Sign-in failed: '+(e.code||e.message)}};
+$('signout').onclick=()=>signOut(auth);
+
+onAuthStateChanged(auth,user=>{
+ if(unsub){unsub();unsub=null}
+ $('login').hidden=!!user;$('main').hidden=!user;
+ if(!user)return;
+ canEdit=(user.email||'').toLowerCase()===OWNER_EMAIL.toLowerCase();
+ unsub=onSnapshot(ref,snap=>{
+  if(snap.exists()){const d=snap.data();S={rate:d.rate||105,history:d.history||[],items:d.items||[]}}
+  render()},
+ err=>{$('login').hidden=false;$('main').hidden=true;$('lerr').textContent='This account is not approved to view the ledger ('+(err.code||'error')+').';signOut(auth)});
+});
+</script>
+</body>
+</html>
